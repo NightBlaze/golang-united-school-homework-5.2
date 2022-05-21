@@ -15,19 +15,20 @@ func (c cacheItem) isExpired() bool {
 }
 
 type Cache struct {
-	sync.RWMutex
+	lock  *sync.RWMutex
 	items map[string]cacheItem
 }
 
 func NewCache() Cache {
 	return Cache{
+		lock:  &sync.RWMutex{},
 		items: map[string]cacheItem{},
 	}
 }
 
 func (c *Cache) Get(key string) (string, bool) {
-	c.RLock()
-	defer c.Unlock()
+	c.lock.RLock()
+	defer c.lock.Unlock()
 
 	item, ok := c.items[key]
 	if !ok || item.isExpired() {
@@ -42,8 +43,8 @@ func (c *Cache) Put(key, value string) {
 }
 
 func (c *Cache) Keys() []string {
-	c.RLock()
-	defer c.Unlock()
+	c.lock.RLock()
+	defer c.lock.Unlock()
 
 	result := make([]string, 0)
 	for key, item := range c.items {
@@ -60,8 +61,8 @@ func (c *Cache) Keys() []string {
 }
 
 func (c *Cache) PutTill(key, value string, deadline time.Time) {
-	c.Lock()
-	defer c.Unlock()
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
 	c.items[key] = cacheItem{
 		value:          value,
