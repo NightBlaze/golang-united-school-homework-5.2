@@ -6,11 +6,11 @@ import (
 
 type cacheItem struct {
 	value          string
-	expirationTime int64
+	expirationTime time.Time
 }
 
 func (c cacheItem) isExpired() bool {
-	return c.expirationTime != 0 && c.expirationTime < time.Now().UnixNano()
+	return c.expirationTime != time.Time{} && c.expirationTime.Unix() < time.Now().Unix()
 }
 
 type Cache struct {
@@ -54,6 +54,6 @@ func (c *Cache) Keys() []string {
 func (c *Cache) PutTill(key, value string, deadline time.Time) {
 	c.items[key] = cacheItem{
 		value:          value,
-		expirationTime: deadline.UnixNano(),
+		expirationTime: deadline,
 	}
 }
